@@ -1,16 +1,12 @@
 """
 LLM as Tool to convert plaintext input into a structured JSON object for the compliance analyst agent 1. 
 """
-import json
-from agents import Agent, agent_tool
+from agents import Agent
 
 json_agent = Agent(
     name="text_to_json_tool",
-    description=(
-        "Converts plaintext input into a structured JSON object for the compliance analyst agent 1."
-    ),
     model="gpt-4.1-mini",
-    system_prompt=(
+    instructions=(
         "You are a tool that converts plaintext input into a structured JSON object for the compliance analyst agent 1. "
         "The JSON object must conform to the following schema:\n"
         "{\n"
@@ -40,10 +36,7 @@ json_agent = Agent(
     ),
 ) 
 
-@agent_tool(agent=json_agent)
-async def convert_text_to_json(text: str) -> dict:
-    """
-    Convert plaintext input into a structured JSON object for the compliance analyst agent 1.
-    """
-    response = await json_agent.run(input=text)
-    return json.loads(response.output_text)
+convert_text_to_json = json_agent.as_tool(
+    tool_name="convert_text_to_json",
+    tool_description="Convert plaintext use case input into structured JSON.",
+)
