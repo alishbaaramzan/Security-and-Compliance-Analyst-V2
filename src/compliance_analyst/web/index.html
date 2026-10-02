@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Compliance Analyst</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <h1>AI Use Case Compliance Analyst</h1>
+
+  <textarea id="use-case" rows="8" placeholder="Describe the AI use case..."></textarea>
+  <button id="submit-btn">Assess</button>
+  <p id="status"></p>
+
+  <div id="results" hidden>
+    <h2>Requirement Verdicts</h2>
+    <table id="verdicts-table">
+      <thead>
+        <tr><th>ID</th><th>Verdict</th><th>Evidence</th><th>Recommended Action</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2>Overall Status: <span id="overall-status"></span></h2>
+
+    <h3>Gaps</h3>
+    <ul id="gaps-list"></ul>
+
+    <h3>Risks</h3>
+    <ul id="risks-list"></ul>
+
+    <h3>Next Steps</h3>
+    <ul id="next-steps-list"></ul>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
