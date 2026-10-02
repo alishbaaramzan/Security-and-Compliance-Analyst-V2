@@ -1,50 +1,42 @@
-"""
-Pydantic schemas shared across agents, tools, and guardrails.
+"""Pydantic models for the output of the compliance analyst agents."""
 
-The Agents SDK uses these for structured outputs (Agent(..., output_type=X))
-and for guardrail payloads, so get these right first -- everything else
-is built around them.
+from typing import Literal
 
-Hints on what you'll likely need:
+from pydantic import BaseModel
 
-UseCase
-    The normalized, JSON-shaped representation of a submitted AI use case
-    (whatever fields the text_to_json tool / direct JSON submission produce).
-    Consider: name, description, data_processed, data_sensitivity,
-    ai_provider, business_owner, human_oversight, logging_monitoring,
-    access_controls, third_party_security_assessment, intended_use,
-    limitations, risk_level, additional_review. Decide which are required
-    vs optional -- missing fields are exactly what should drive UNKNOWN
-    verdicts downstream, not validation errors.
+Verdict = Literal["PASS", "FAIL", "UNKNOWN"]
+OverallStatus = Literal["PASS", "REVIEW_REQUIRED"]
 
-Verdict
-    Literal["PASS", "FAIL", "UNKNOWN"]
 
-RequirementVerdict  (one row of Agent 1's output)
-    - requirement_id: str
-    - verdict: Verdict
-    - evidence: str          (what evidence was found / cited, or why none)
-    - recommended_action: str
+class RequirementVerdict(BaseModel):
+    """Agent 1's assessment of a single requirement."""
 
-MappingResult  (Agent 1's full structured output)
-    - requirement_verdicts: list[RequirementVerdict]
-    (keep agent 1 focused on mapping only -- no risks/gaps here, that's
-    agent 2's job)
+    requirement_id: str
+    verdict: Verdict
+    evidence: str
+    recommended_action: str
 
-RiskAssessment  (Agent 2's structured output)
-    - gaps: list[str]
-    - risks: list[str]
-    - next_steps: list[str]
-    - overall_status: Literal[...] (e.g. "PASS", "REVIEW_REQUIRED") --
-      decide the rule for deriving this (e.g. any FAIL/UNKNOWN -> review)
 
-FinalReport  (what main.py assembles and returns to the caller)
-    - requirement_verdicts: list[RequirementVerdict]
-    - gaps / risks / next_steps / overall_status (from RiskAssessment)
+class MappingResult(BaseModel):
+    """Agent 1's full output: every requirement, assessed once."""
 
-Guardrail payloads
-    - Agents SDK guardrails return a GuardrailFunctionOutput wrapping
-      output_info of whatever shape you want. A small Pydantic model for
-      "why did this guardrail trip" (reason: str, tripwire_triggered: bool)
-      keeps that consistent across input/output guardrails.
-"""
+    requirement_verdicts: list[RequirementVerdict]
+
+
+class RiskAssessment(BaseModel):
+    """Agent 2's output: reasoning across all verdicts."""
+
+    overall_status: OverallStatus
+    gaps: list[str]
+    risks: list[str]
+    next_steps: list[str]
+
+
+class FinalReport(BaseModel):
+    """The assembled report returned to the caller."""
+
+    requirement_verdicts: list[RequirementVerdict]
+    overall_status: OverallStatus
+    gaps: list[str]
+    risks: list[str]
+    next_steps: list[str]
