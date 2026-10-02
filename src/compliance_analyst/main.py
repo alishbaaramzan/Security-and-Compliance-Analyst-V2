@@ -1,28 +1,35 @@
-"""
-Entry point: wires the two-agent pipeline together.
+"""Basic CLI entry point to test the compliance analyst pipeline."""
 
-Pipeline shape:
-    raw submission (text or JSON)
-        -> text_to_json (if not already JSON)                [models.UseCase]
-        -> mapper_agent  (Runner.run, context=use_case)       [models.MappingResult]
-        -> reasoner_agent (Runner.run, input=mapping_result)  [models.RiskAssessment]
-        -> assemble models.FinalReport from both outputs
+import asyncio
+import sys
+from agents import InputGuardrailTripwireTriggered, OutputGuardrailTripwireTriggered
+from dotenv import load_dotenv
+from .agents.runner import run_compliance_analysis
+load_dotenv()
 
-Hints:
-- Keep this module thin: parse input, call Runner.run twice, assemble the
-  final report, handle guardrail exceptions. Business logic belongs in
-  the agents/tools, not here.
-- Runner.run is async (it's the Agents SDK) -- either `async def main()`
-  + asyncio.run, or use Runner.run_sync if you want a synchronous CLI.
-- Wrap the mapper/reasoner calls so InputGuardrailTripwireTriggered and
-  OutputGuardrailTripwireTriggered produce a clean error/result instead of
-  propagating a raw exception to the caller.
-- If you want an HTTP API (the `api` extra pulls in fastapi/uvicorn),
-  add a separate `api.py` that imports this pipeline function rather than
-  cramming FastAPI routes into this file -- keeps `compliance-analyst` the
-  CLI entry point and the API an optional layer on top.
+SAMPLE_USE_CASE = """
+Customer Support Assistant: A customer support team wants to use an LLM to summarize
+customer conversations and suggest responses to support agents. The system will process
+customer names, account information, support tickets and conversation history. A human
+support agent will review the generated response before sending it to the customer. The 
+application will use a third-party hosted LLM API.
 """
 
 
 def main() -> None:
-    raise NotImplementedError
+    use_case_text = sys.argv[1] if len(sys.argv) > 1 else SAMPLE_USE_CASE
+
+    try:
+        report = asyncio.run(run_compliance_analysis(use_case_text))
+    except InputGuardrailTripwireTriggered:
+        print("Rejected: input guardrail triggered.")
+        return
+    except OutputGuardrailTripwireTriggered:
+        print("Rejected: output guardrail triggered.")
+        return
+
+    print(report.model_dump_json(indent=2))
+
+
+if __name__ == "__main__":
+    main()
