@@ -1,4 +1,4 @@
-"""returns the requirements data for the compliance analyst"""
+""" the requirements data for the compliance analyst"""
 
 REQUIREMENTS = [
     {
