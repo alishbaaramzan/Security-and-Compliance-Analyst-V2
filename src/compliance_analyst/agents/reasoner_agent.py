@@ -1,7 +1,6 @@
 """
 Agent 2: Risk Reasoner
 """
-import json
 from agents import Agent
 from ..models import RiskAssessment
 
@@ -13,4 +12,4 @@ reasoner_agent = Agent(
         "and provide a comprehensive risk assessment."
     ),
     output_type=RiskAssessment,
-) 
+)

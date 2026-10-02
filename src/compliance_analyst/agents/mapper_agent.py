@@ -3,6 +3,8 @@ Agent 1: Compliance Mapper
 """
 
 from agents import Agent
+from ..guardrails.input_guardrails import check_use_case_input
+from ..guardrails.output_guardrails import check_mapping_completeness
 from ..models import MappingResult
 from ..tools.evidence_tool import get_required_evidence
 from ..tools.requirements_tool import get_requirements
@@ -22,4 +24,6 @@ compliance_mapper_agent = Agent(
         convert_text_to_json,
     ],
     output_type=MappingResult,
+    input_guardrails=[check_use_case_input],
+    output_guardrails=[check_mapping_completeness],
 )
